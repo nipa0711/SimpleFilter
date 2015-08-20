@@ -87,4 +87,11 @@ public:
 	Mat toStylization(Mat input);
 	Mat toColorOnly(Mat input, int select);
 	Mat toVignetting(Mat input);
+	Mat toDotPattern(Mat input);
+	Mat toFisheye(Mat input);
+	Mat toCartoonEffect(Mat input);
+	Mat toAdaptiveLightnessHistogramEqualization(Mat input);
+	Mat toAdaptiveRGBHistogramEqualization(Mat input);
+	Mat toAdaptiveYCrCbHistogramEqualization(Mat input);
+	Mat toAdaptiveSaturationHistogramEqualization(Mat input);
 };

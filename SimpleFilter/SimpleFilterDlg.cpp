@@ -20,10 +20,10 @@ class CAboutDlg : public CDialogEx
 public:
 	CAboutDlg();
 
-// 대화 상자 데이터입니다.
+	// 대화 상자 데이터입니다.
 	enum { IDD = IDD_ABOUTBOX };
 
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 지원입니다.
 
 // 구현입니다.
@@ -161,7 +161,7 @@ void CSimpleFilterDlg::OnPaint()
 	{
 		rect = CRect(0, 0, picWidth, picHeight);
 		pDC1 = ShowImgFrame.GetDC();
-		hDC1 = pDC1->GetSafeHdc();	
+		hDC1 = pDC1->GetSafeHdc();
 
 		rect2 = CRect(0, 0, histWidth, histHeight);
 		pDC2 = ShowHistogram.GetDC();
@@ -183,10 +183,10 @@ void CSimpleFilterDlg::OnOpen()
 {
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
 	CFileDialog dlg(TRUE, NULL, NULL, OFN_HIDEREADONLY, _T("Image(*.BMP,*.JPG,*.PNG)|*.BMP;*.JPG;*.PNG|All Files(*.*)|*.*||"));
-	if (IDOK == dlg.DoModal()) 
+	if (IDOK == dlg.DoModal())
 	{
 		CString strPathName = dlg.GetPathName();
-		OriginalMat = imread(CStrToStr(strPathName));	
+		OriginalMat = imread(CStrToStr(strPathName));
 
 		IplImage1 = OriginalMat;
 		IplFilterShow = OriginalMat;
@@ -195,10 +195,10 @@ void CSimpleFilterDlg::OnOpen()
 		drawHistogram(OriginalMat);
 		FilterList.EnableWindow(TRUE);
 		CMenu *menu = (CMenu*)GetMenu();
-			// This will disable
+		// This will disable
 		menu->EnableMenuItem(ID_FileSave /*your menu ID*/, MF_ENABLED);
-	}	
-	
+	}
+
 	//Invalidate(TRUE);
 	//CDialogEx::OnPaint();
 }
@@ -223,14 +223,14 @@ void CSimpleFilterDlg::drawHistogram(Mat input)
 	long int dim;
 	Mat histImage, grayImg;
 
-	if (input.channels()==3)
+	if (input.channels() == 3)
 	{
 		cvtColor(input, grayImg, CV_BGR2GRAY);
 	}
 	else
 	{
 		grayImg = input;
-	}	
+	}
 
 	calcHist(&grayImg, 1, 0, Mat(), histImage, 1, &histSize, 0);
 
@@ -238,18 +238,18 @@ void CSimpleFilterDlg::drawHistogram(Mat input)
 	hist = Mat::ones(255, 255, CV_8U) * 255;
 
 	normalize(histImage, histImage, 0, hist.rows, CV_MINMAX, CV_32F);
-	
+
 	hist = Scalar::all(255);
 	int binW = cvRound((double)hist.cols / histSize);
 
-	for (int i = 0; i < histSize;i++)
+	for (int i = 0; i < histSize; i++)
 	{
 		rectangle(hist, Point(i*binW, hist.rows), Point((i + 1)*binW, hist.rows - cvRound(histImage.at<float>(i))), Scalar::all(0), -1, 8, 0);
 	}
 
 	IplHistogram = hist;
 	m_CVvHistogram.CopyOf(&IplHistogram);
-	m_CVvHistogram.DrawToHDC(hDC2, &rect2);	
+	m_CVvHistogram.DrawToHDC(hDC2, &rect2);
 }
 
 void CSimpleFilterDlg::drawFilter()
@@ -289,6 +289,13 @@ void CSimpleFilterDlg::drawFilter()
 	FilterList.AddString(L"초록 강조");
 	FilterList.AddString(L"파랑 강조");
 	FilterList.AddString(L"비네팅");
+	FilterList.AddString(L"fake 점묘화");
+	FilterList.AddString(L"Adaptive 밝기 Equalization");
+	FilterList.AddString(L"Adaptive RGB Equalization");
+	FilterList.AddString(L"Adaptive YCrCb Equalization");
+	FilterList.AddString(L"Adaptive Saturation Equalization");
+	//FilterList.AddString(L"fisheye");
+	//FilterList.AddString(L"카툰 효과");
 }
 
 CBitmap* CSimpleFilterDlg::IplImageToCBitmap(IplImage* img)
@@ -404,7 +411,7 @@ void CSimpleFilterDlg::OnLbnSelchangeList()
 		adaptFilterImg(toUnSharp(OriginalMat));
 		break;
 	case 25:
-		adaptFilterImg(toFlip(OriginalMat,1));
+		adaptFilterImg(toFlip(OriginalMat, 1));
 		break;
 	case 26:
 		adaptFilterImg(toFlip(OriginalMat, 0));
@@ -422,7 +429,7 @@ void CSimpleFilterDlg::OnLbnSelchangeList()
 		adaptFilterImg(toStylization(OriginalMat));
 		break;
 	case 31:
-		adaptFilterImg(toColorOnly(OriginalMat,1));
+		adaptFilterImg(toColorOnly(OriginalMat, 1));
 		break;
 	case 32:
 		adaptFilterImg(toColorOnly(OriginalMat, 2));
@@ -432,6 +439,21 @@ void CSimpleFilterDlg::OnLbnSelchangeList()
 		break;
 	case 34:
 		adaptFilterImg(toVignetting(OriginalMat));
+		break;
+	case 35:
+		adaptFilterImg(toDotPattern(OriginalMat));
+		break;
+	case 36:
+		adaptFilterImg(toAdaptiveLightnessHistogramEqualization(OriginalMat));
+		break;
+	case 37:
+		adaptFilterImg(toAdaptiveRGBHistogramEqualization(OriginalMat));
+		break;
+	case 38:
+		adaptFilterImg(toAdaptiveYCrCbHistogramEqualization(OriginalMat));
+		break;
+	case 39:
+		adaptFilterImg(toAdaptiveSaturationHistogramEqualization(OriginalMat));
 		break;
 	default:
 		break;
@@ -444,7 +466,7 @@ void CSimpleFilterDlg::adaptFilterImg(Mat input)
 	m_CVvImageObj1.CopyOf(&img);
 	m_CVvImageObj1.DrawToHDC(hDC1, &rect);
 	drawHistogram(input);
-	
+
 }
 
 Mat CSimpleFilterDlg::toGray(Mat input)
@@ -519,7 +541,7 @@ void CSimpleFilterDlg::OnFilesave()
 		CString strFolderPath = dlg.GetFolderPath();
 		CString strFileName = dlg.GetFileName();
 		CString strFileExtension = dlg.GetFileExt();
-		imwrite(CStrToStr(strFolderPath) + "\\" + CStrToStr(strFileName), currentMat);	
+		imwrite(CStrToStr(strFolderPath) + "\\" + CStrToStr(strFileName), currentMat);
 	}
 }
 
@@ -559,7 +581,7 @@ Mat CSimpleFilterDlg::toCanny(Mat input)
 	Mat dst, detected_edges;
 
 	int edgeThresh = 1;
-	int lowThreshold=50;
+	int lowThreshold = 50;
 	int const max_lowThreshold = 100;
 	int ratio = 3;
 	int kernel_size = 3;
@@ -580,9 +602,9 @@ Mat CSimpleFilterDlg::toErode(Mat input)
 {
 	Mat temp;
 	int erosion_size = 6;
-	Mat element = getStructuringElement(cv::MORPH_ELLIPSE,
-		cv::Size(2 * erosion_size + 1, 2 * erosion_size + 1),
-		cv::Point(erosion_size, erosion_size));
+	Mat element = getStructuringElement(MORPH_ELLIPSE,
+		Size(2 * erosion_size + 1, 2 * erosion_size + 1),
+		Point(erosion_size, erosion_size));
 
 	erode(input, temp, element);
 
@@ -593,9 +615,9 @@ Mat CSimpleFilterDlg::toDilate(Mat input)
 {
 	Mat temp;
 	int erosion_size = 6;
-	Mat element = getStructuringElement(cv::MORPH_ELLIPSE,
-		cv::Size(2 * erosion_size + 1, 2 * erosion_size + 1),
-		cv::Point(erosion_size, erosion_size));
+	Mat element = getStructuringElement(MORPH_ELLIPSE,
+		Size(2 * erosion_size + 1, 2 * erosion_size + 1),
+		Point(erosion_size, erosion_size));
 
 	dilate(input, temp, element);
 
@@ -658,7 +680,7 @@ Mat CSimpleFilterDlg::NipaFilterB2(Mat input)
 	dst = YCrCbHistogramEqual(input);
 
 	addWeighted(input, 0.5, dst, 0.5, 0.0, temp);
-	
+
 	return temp;
 }
 
@@ -711,7 +733,7 @@ Mat CSimpleFilterDlg::toSobel(Mat input)
 
 	/// Total Gradient (approximate)
 	addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, grad);
-	
+
 	return grad;
 }
 
@@ -762,7 +784,7 @@ Mat CSimpleFilterDlg::toUnSharp(Mat input)
 {
 	Mat src;
 	input.copyTo(src);
-	GaussianBlur(src, src, Size(7, 7),5);
+	GaussianBlur(src, src, Size(7, 7), 5);
 	addWeighted(input, 1.5, src, -0.5, 0, src);
 	return src;
 }
@@ -785,45 +807,45 @@ Mat CSimpleFilterDlg::toMiniature(Mat input)
 
 	int pointHeight = dstHeight / 9;
 
-		Rect region_of_interest = Rect(0, 0, dstWidth, pointHeight);
-		Mat roi = dst(region_of_interest);
-		
-		//GaussianBlur(roi, roi, Size(25, 25), 0, 0, BORDER_DEFAULT);
-		blur(roi, roi, Size(23, 23), Point(-1, -1));
-		
-		region_of_interest = Rect(0, pointHeight, dstWidth, pointHeight);
-		roi = dst(region_of_interest);
-		//GaussianBlur(roi, roi, Size(17, 17), 0, 0, BORDER_DEFAULT);
-		blur(roi, roi, Size(17, 17), Point(-1, -1));
+	Rect region_of_interest = Rect(0, 0, dstWidth, pointHeight);
+	Mat roi = dst(region_of_interest);
 
-		region_of_interest = Rect(0, pointHeight * 2, dstWidth, pointHeight);
-		roi = dst(region_of_interest);
-		//GaussianBlur(roi, roi, Size(11, 11), 0, 0, BORDER_DEFAULT);
-		blur(roi, roi, Size(11, 11), Point(-1, -1));
+	//GaussianBlur(roi, roi, Size(25, 25), 0, 0, BORDER_DEFAULT);
+	blur(roi, roi, Size(23, 23), Point(-1, -1));
 
-		region_of_interest = Rect(0, pointHeight * 6, dstWidth, pointHeight);
+	region_of_interest = Rect(0, pointHeight, dstWidth, pointHeight);
+	roi = dst(region_of_interest);
+	//GaussianBlur(roi, roi, Size(17, 17), 0, 0, BORDER_DEFAULT);
+	blur(roi, roi, Size(17, 17), Point(-1, -1));
 
-		roi = dst(region_of_interest);
-		//GaussianBlur(roi, roi, Size(9, 9), 0, 0, BORDER_DEFAULT);
-		blur(roi, roi, Size(11, 11), Point(-1, -1));
+	region_of_interest = Rect(0, pointHeight * 2, dstWidth, pointHeight);
+	roi = dst(region_of_interest);
+	//GaussianBlur(roi, roi, Size(11, 11), 0, 0, BORDER_DEFAULT);
+	blur(roi, roi, Size(11, 11), Point(-1, -1));
 
-		region_of_interest = Rect(0, pointHeight * 7, dstWidth, pointHeight);
-		roi = dst(region_of_interest);
-		//GaussianBlur(roi, roi, Size(17, 17), 0, 0, BORDER_DEFAULT);
-		blur(roi, roi, Size(17, 17), Point(-1, -1));
+	region_of_interest = Rect(0, pointHeight * 6, dstWidth, pointHeight);
 
-		region_of_interest = Rect(0, pointHeight * 8, dstWidth, dstHeight - (pointHeight * 8));
-		roi = dst(region_of_interest);
-		//GaussianBlur(roi, roi, Size(25, 25), 0, 0, BORDER_DEFAULT);
-		blur(roi, roi, Size(23, 23), Point(-1, -1));
-		
+	roi = dst(region_of_interest);
+	//GaussianBlur(roi, roi, Size(9, 9), 0, 0, BORDER_DEFAULT);
+	blur(roi, roi, Size(11, 11), Point(-1, -1));
+
+	region_of_interest = Rect(0, pointHeight * 7, dstWidth, pointHeight);
+	roi = dst(region_of_interest);
+	//GaussianBlur(roi, roi, Size(17, 17), 0, 0, BORDER_DEFAULT);
+	blur(roi, roi, Size(17, 17), Point(-1, -1));
+
+	region_of_interest = Rect(0, pointHeight * 8, dstWidth, dstHeight - (pointHeight * 8));
+	roi = dst(region_of_interest);
+	//GaussianBlur(roi, roi, Size(25, 25), 0, 0, BORDER_DEFAULT);
+	blur(roi, roi, Size(23, 23), Point(-1, -1));
+
 	return dst;
 }
 
 Mat CSimpleFilterDlg::toSepia(Mat input)
 {
 	Mat temp;
-	Mat kern = (cv::Mat_<float>(3, 3) << 
+	Mat kern = (Mat_<float>(3, 3) <<
 		0.131, 0.534, 0.272,  // B
 		0.168, 0.686, 0.349,  // G
 		0.189, 0.769, 0.393 // R
@@ -851,7 +873,7 @@ Mat CSimpleFilterDlg::toColorOnly(Mat input, int select) // 1 - Red, 2 - Green, 
 {
 	Mat show;
 	Mat hsv;
-	
+
 	cvtColor(input, hsv, CV_BGR2HSV);
 	input.copyTo(show);
 
@@ -878,8 +900,7 @@ Mat CSimpleFilterDlg::toColorOnly(Mat input, int select) // 1 - Red, 2 - Green, 
 
 				int sum = (r + g + b) / 3;
 
-				//if (r>100 && b<25 && g <25)
-				if (((h >= 0 && h <= 10) || (h >= 170 && h <= 179)) && (s >= 100 && s <= 255) && (v >=100 && v <= 255))
+				if (((h >= 0 && h <= 10) || (h >= 170 && h <= 179)) && (s >= 100 && s <= 255) && (v >= 100 && v <= 255))
 				{
 					/*r = r;
 					g = g;
@@ -947,8 +968,7 @@ Mat CSimpleFilterDlg::toColorOnly(Mat input, int select) // 1 - Red, 2 - Green, 
 
 				int sum = (r + g + b) / 3;
 
-				//if (r>100 && b<25 && g <25)
-				if ((h>=105 && h<=130) && (s >= 80 && s <= 255) && (v >= 80 && v <= 255))
+				if ((h >= 100 && h <= 130) && (s >= 100 && s <= 255) && (v >= 80 && v <= 255))
 				{
 					/*r = r;
 					g = g;
@@ -965,7 +985,7 @@ Mat CSimpleFilterDlg::toColorOnly(Mat input, int select) // 1 - Red, 2 - Green, 
 		break;
 	default:
 		break;
-	}	
+	}
 
 	return show;
 }
@@ -977,16 +997,16 @@ double dist(CvPoint a, CvPoint b)
 }
 
 // Helper function that computes the longest distance from the edge to the center point.
-double getMaxDisFromCorners(const cv::Size& imgSize, const cv::Point& center)
+double getMaxDisFromCorners(const  Size& imgSize, const  Point& center)
 {
 	// given a rect and a line
 	// get which corner of rect is farthest from the line
 
-	std::vector<cv::Point> corners(4);
-	corners[0] = cv::Point(0, 0);
-	corners[1] = cv::Point(imgSize.width, 0);
-	corners[2] = cv::Point(0, imgSize.height);
-	corners[3] = cv::Point(imgSize.width, imgSize.height);
+	std::vector< Point> corners(4);
+	corners[0] = Point(0, 0);
+	corners[1] = Point(imgSize.width, 0);
+	corners[2] = Point(0, imgSize.height);
+	corners[3] = Point(imgSize.width, imgSize.height);
 
 	double maxDis = 0;
 	for (int i = 0; i < 4; ++i)
@@ -1001,20 +1021,20 @@ double getMaxDisFromCorners(const cv::Size& imgSize, const cv::Point& center)
 
 // Helper function that creates a gradient image.   
 // firstPt, radius and power, are variables that control the artistic effect of the filter.
-void generateGradient(cv::Mat& mask)
+void generateGradient(Mat& mask)
 {
-	cv::Point firstPt = cv::Point(mask.size().width / 2, mask.size().height / 2);
+	Point firstPt = Point(mask.size().width / 2, mask.size().height / 2);
 	double radius = 1.0;
 	double power = 0.8;
 
 	double maxImageRad = radius * getMaxDisFromCorners(mask.size(), firstPt);
 
-	mask.setTo(cv::Scalar(1));
+	mask.setTo(Scalar(1));
 	for (int i = 0; i < mask.rows; i++)
 	{
 		for (int j = 0; j < mask.cols; j++)
 		{
-			double temp = dist(firstPt, cv::Point(j, i)) / maxImageRad;
+			double temp = dist(firstPt, Point(j, i)) / maxImageRad;
 			temp = temp * power;
 			double temp_s = pow(cos(temp), 4);
 			mask.at<double>(i, j) = temp_s;
@@ -1044,4 +1064,154 @@ Mat CSimpleFilterDlg::toVignetting(Mat input)
 	cvtColor(labImg, output, CV_Lab2BGR);
 
 	return output;
+}
+
+Mat CSimpleFilterDlg::toDotPattern(Mat input)
+{
+	// http://opencv-code.com/tutorials/photo-to-colored-dot-patterns-with-opencv/#more-754
+
+	Mat dst = Mat::zeros(input.size(), CV_8UC3);
+	Mat cir = Mat::zeros(input.size(), CV_8UC1);
+
+	int bsize = 10;
+
+	for (int i = 0; i < input.rows; i += bsize)
+	{
+		for (int j = 0; j < input.cols; j += bsize)
+		{
+			Rect rect = Rect(j, i, bsize, bsize) &
+				Rect(0, 0, input.cols, input.rows);
+
+			Mat sub_dst(dst, rect);
+			sub_dst.setTo(mean(input(rect)));
+
+			circle(
+				cir,
+				Point(j + bsize / 2, i + bsize / 2),
+				bsize / 2 - 1,
+				CV_RGB(255, 255, 255), -1, CV_AA
+				);
+		}
+	}
+
+	Mat cir_32f;
+	cir.convertTo(cir_32f, CV_32F);
+	normalize(cir_32f, cir_32f, 0, 1, NORM_MINMAX);
+
+	Mat dst_32f;
+	dst.convertTo(dst_32f, CV_32F);
+
+	vector< Mat> channels;
+	split(dst_32f, channels);
+	for (int i = 0; i < channels.size(); ++i)
+		channels[i] = channels[i].mul(cir_32f);
+
+	merge(channels, dst_32f);
+	dst_32f.convertTo(dst, CV_8U);
+
+	return dst;
+}
+
+Mat CSimpleFilterDlg::toAdaptiveLightnessHistogramEqualization(Mat input)
+{
+	Mat temp = input;
+
+	Mat lab_image;
+	cvtColor(temp, lab_image, CV_BGR2Lab);
+
+	vector<Mat> lab_planes(3);
+	split(lab_image, lab_planes);
+
+	Ptr< CLAHE> clahe = createCLAHE();
+	clahe->setClipLimit(2);
+	Mat dst;
+	clahe->apply(lab_planes[0], dst);
+
+	dst.copyTo(lab_planes[0]);
+	merge(lab_planes, lab_image);
+
+	Mat final;
+	cvtColor(lab_image, final, CV_Lab2BGR);
+
+	return final;
+}
+
+Mat CSimpleFilterDlg::toAdaptiveRGBHistogramEqualization(Mat input)
+{
+	vector<Mat> channels(3);
+	split(input, channels);
+
+	Ptr<CLAHE> clahe = createCLAHE();
+	clahe->setClipLimit(2);
+	Mat dstR, dstG, dstB;
+	clahe->apply(channels[0], dstB);
+	clahe->apply(channels[1], dstG);
+	clahe->apply(channels[2], dstR);
+
+	dstB.copyTo(channels[0]);
+	dstG.copyTo(channels[1]);
+	dstR.copyTo(channels[2]);
+
+	Mat temp;
+	merge(channels, temp);
+
+	return temp;
+}
+
+Mat CSimpleFilterDlg::toAdaptiveYCrCbHistogramEqualization(Mat input)
+{
+	Mat temp = input;
+
+	Mat YCrCb_image;
+	cvtColor(temp, YCrCb_image, CV_BGR2YCrCb);
+
+	vector<Mat> YCrCb_planes(3);
+	split(YCrCb_image, YCrCb_planes);
+
+	Ptr< CLAHE> clahe = createCLAHE();
+	clahe->setClipLimit(2);
+
+	Mat dst0, dst1, dst2;
+	clahe->apply(YCrCb_planes[0], dst0);
+	clahe->apply(YCrCb_planes[1], dst1);
+	clahe->apply(YCrCb_planes[2], dst2);
+
+	dst0.copyTo(YCrCb_planes[0]);
+	dst1.copyTo(YCrCb_planes[1]);
+	dst2.copyTo(YCrCb_planes[2]);
+	merge(YCrCb_planes, YCrCb_image);
+
+	Mat final;
+	cvtColor(YCrCb_image, final, CV_YCrCb2BGR);
+
+	return final;
+}
+
+Mat CSimpleFilterDlg::toAdaptiveSaturationHistogramEqualization(Mat input)
+{
+	Mat temp = input;
+
+	Mat HSV_Image;
+	cvtColor(temp, HSV_Image, CV_BGR2HSV);
+
+	vector<Mat> HSV_planes(3);
+	split(HSV_Image, HSV_planes);
+
+	Ptr<CLAHE> clahe = createCLAHE();
+	clahe->setClipLimit(2);
+
+	Mat dst0, dst1, dst2;
+	//clahe->apply(HSV_planes[0], dst0);
+	clahe->apply(HSV_planes[1], dst1);
+	//clahe->apply(HSV_planes[2], dst2);
+
+	//dst0.copyTo(HSV_planes[0]);
+	dst1.copyTo(HSV_planes[1]);
+	//dst2.copyTo(HSV_planes[2]);
+	merge(HSV_planes, HSV_Image);
+
+	Mat final;
+	cvtColor(HSV_Image, final, CV_HSV2BGR);
+
+	return final;
 }
